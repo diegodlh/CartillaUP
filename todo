@@ -4,4 +4,18 @@ TODO:
 - indicar fecha de acceso en cada row
 - obtener el código de prestador e incluirlo en cada row
 - transformar el csv al formato wide; al hacerlo, concatenar cartilla > categoría > especialidad
-- 
+- obtener coordenadas
+- geojson con 2 propiedades: plan y especialidad, cada una es una lista de planes y especialidades para el prestador
+- agregar fecha de última obtención al csv (o geojson) y mostrar en mapa
+- https://leafletjs.com/examples/geojson/
+- https://leafletjs.com/reference-1.4.0.html#geojson
+
+L.geoJSON(someFeatures, {
+    onEachFeature: onEachFeature,
+    filter: function(feature, layer) {
+        return feature.properties.show_on_map;
+    }
+}).addTo(map);
+
+geoJSON extends FeatureGroup, which extends LayerGroup, which "if you add it to the map, any layers added or removed from the group will be added/removed on the map as well"
+geoJSON objects inherit remove() method from Layer
