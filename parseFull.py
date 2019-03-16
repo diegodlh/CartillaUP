@@ -3,6 +3,8 @@ import requests
 import pdb
 import csv
 import os
+import datetime
+import re
 
 urlswitch = "https://www.unionpersonal.com.ar/modulos/afiliados/cartillas/switch.php"
 
@@ -32,24 +34,33 @@ cartillas = {
 
 def getOptions(params, data):
     response = requests.post(urlswitch, params=params, data=data)
-    tree = html.fromstring(response.content)
+    tree = html.fromstring(response.text)
     options = tree.xpath('//option')
     return {option.attrib['value']: option.text for option in options if option.attrib['value']}
 
 
 def getPrestadores(params, data):
     response = requests.post(urlswitch, params=params, data=data)
-    tree = html.fromstring(response.content)
-    cells = tree.xpath('//tr/td[2]')
+    tree = html.fromstring(response.text)
+    rows = tree.xpath('//tr')
     prestadores = []
-    for cell in cells:
+    for row in rows:
+        cell = row.xpath('./td[2]')[0]
         span_elements = [span_element.text for span_element in cell.getchildren()]
+        href = row.xpath('./td[4]/a/@href')[0]
+        if re.match(r'^javascript:verMapa\((,?".*?")+\)$', href):
+            coordenadas = re.findall(r'"(.*?)"', href)[-1]
+        else:
+            coordenadas = ''
         prestador = {
+            'id': row.attrib['id'],
             'nombre': span_elements[0],
             'especialidad': span_elements[1],
             'direccion': span_elements[2],
             'localidad': span_elements[3],
-            'telefono': span_elements[4]
+            'telefono': span_elements[4],
+            'observaciones': span_elements[5] if len(span_elements) > 5 else '',
+            'coordenadas': coordenadas
         }
         prestadores.append(prestador)
     return prestadores
@@ -77,7 +88,7 @@ if os.path.exists('log.csv'):
                     break
 
 
-out_fieldnames = log_fieldnames + ['nombre', 'direccion', 'localidad', 'telefono']
+out_fieldnames = log_fieldnames + ['id', 'nombre', 'direccion', 'localidad', 'telefono', 'observaciones', 'coordenadas', 'accedido']
 with open('out.csv', 'a') as out_file, open('log.csv', 'a') as log_file:
     out_writer = csv.DictWriter(out_file, fieldnames=out_fieldnames)
     if out_file.tell() == 0:
@@ -134,10 +145,14 @@ with open('out.csv', 'a') as out_file, open('log.csv', 'a') as log_file:
                                     'zona': zonas[zona],
                                     'categoria': categorias[categoria],
                                     'especialidad': especialidades[especialidad],
+                                    'id': prestador['id'],
                                     'nombre': prestador['nombre'],
                                     'direccion': prestador['direccion'],
                                     'localidad': prestador['localidad'],
-                                    'telefono': prestador['telefono']
+                                    'telefono': prestador['telefono'],
+                                    'observaciones': prestador['observaciones'],
+                                    'coordenadas': prestador['coordenadas'],
+                                    'accedido': datetime.date.today()
                                 }
                                 out_writer.writerow(row)
                             out_file.flush()
@@ -146,12 +161,17 @@ with open('out.csv', 'a') as out_file, open('log.csv', 'a') as log_file:
                             log_writer.writerow({**params, **data})
                         data['especialidad'] = '*'
                         log_writer.writerow({**params, **data})
+                        log_file.flush()
                     data['categoria'] = '*'
                     log_writer.writerow({**params, **data})
+                    log_file.flush()
                 data['zona'] = '*'
                 log_writer.writerow({**params, **data})
+                log_file.flush()
             data['cartilla'] = '*'
             log_writer.writerow({**params, **data})
+            log_file.flush()
         data['plan'] = '*'
         log_writer.writerow({**params, **data})
+        log_file.flush()
 os.remove('log.csv')
