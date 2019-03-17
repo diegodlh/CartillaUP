@@ -66,28 +66,45 @@ def getPrestadores(params, data):
     return prestadores
 
 
-def omitir(value, done):
-    if value in done:
+def omitir(params, data, debug=False):
+    if debug:
+        pdb.set_trace()
+    data = {'c': params['c'], **data}
+    i = root
+    for log_fieldname in log_fieldnames:
+        if log_fieldname in data:
+            value = data[log_fieldname]
+            if value in i[log_fieldname]:
+                i = i[log_fieldname][value]
+            else:
+                break
+        else:
+            break
+    done = i['done']
+    if done:
         print(' > OMITIR...')
-        return True
     else:
         print()
-        return False
+    return done
 
 
-log_fieldnames = ['c', 'plan', 'cartilla', 'zona', 'categoria', 'especialidad']
-done = {fieldname: [] for fieldname in log_fieldnames}
+global root
+root = {'done': False, 'c': {}}
 if os.path.exists('log.csv'):
     with open('log.csv') as log_file:
         log_reader = csv.DictReader(log_file)
         for row in log_reader:
-            for fieldname, value in reversed(row.items()):
-                if value != '*':
-                    if value not in done[fieldname]:
-                        done[fieldname].append(value)
-                    break
+            i = root
+            for fieldname, value in row.items():
+                if fieldname not in i:
+                    i[fieldname] = {}
+                if value:
+                    if value not in i[fieldname]:
+                        i[fieldname][value] = {'done': False}
+                    i = i[fieldname][value]
+            i['done'] = True
 
-
+log_fieldnames = ['c', 'plan', 'cartilla', 'zona', 'categoria', 'especialidad']
 out_fieldnames = log_fieldnames + ['id', 'nombre', 'direccion', 'localidad', 'telefono', 'observaciones', 'coordenadas', 'accedido']
 with open('out.csv', 'a') as out_file, open('log.csv', 'a') as log_file:
     out_writer = csv.DictWriter(out_file, fieldnames=out_fieldnames)
@@ -99,44 +116,45 @@ with open('out.csv', 'a') as out_file, open('log.csv', 'a') as log_file:
     params = {}
     data = {}
     for c in cs.keys():
-        print('.' + cs[c], end='')
-        if omitir(c, done['c']):
-            continue
         params['c'] = c
+        print('.' + cs[c], end='')
+        if omitir(params, data):
+            continue
         for plan in plans.keys():
-            print('..' + plans[plan], end='')
-            if omitir(plan, done['plan']):
-                continue
             data['plan'] = plan
+            print('..' + plans[plan], end='')
+            if omitir(params, data):
+                continue
             for cartilla in cartillas.keys():
-                print('...' + cartillas[cartilla], end='')
-                if omitir(cartilla, done['cartilla']):
-                    continue
                 params['control'] = 'zonas'
                 data['cartilla'] = cartilla
+                print('...' + cartillas[cartilla], end='')
+                if omitir(params, data):
+                    continue
                 zonas = getOptions(params, data)
                 for zona in zonas.keys():
                     print('....' + zonas[zona], end='')
-                    if omitir(zona, done['zona']):
+                    if omitir(params, data):
                         continue
                     params['control'] = 'categorias'
                     data['zona'] = zona
                     categorias = getOptions(params, data)
                     for categoria in categorias.keys():
-                        print('.....' + categorias[categoria], end='')
-                        if omitir(categoria, done['categoria']):
-                            continue
                         params['control'] = 'especialidades'
                         data['categoria'] = categoria
+                        print('.....' + categorias[categoria], end='')
+                        if omitir(params, data):
+                            continue
                         especialidades = getOptions(params, data)
                         for especialidad in especialidades.keys():
-                            print('......' + especialidades[especialidad], end='')
-                            if omitir(especialidad, done['especialidad']):
-                                continue
                             params['control'] = 'consulta'
                             data['especialidad'] = especialidad
                             data['localidad'] = 'todas'
+                            print('......' + especialidades[especialidad], end='')
+                            if omitir(params, data):
+                                continue
                             prestadores = getPrestadores(params, data)
+                            del data['localidad']
                             for prestador in prestadores:
                                 row = {
                                     'c': cs[c],
@@ -156,22 +174,21 @@ with open('out.csv', 'a') as out_file, open('log.csv', 'a') as log_file:
                                 }
                                 out_writer.writerow(row)
                             out_file.flush()
-                            del params['control']
-                            del data['localidad']
-                            log_writer.writerow({**params, **data})
-                        data['especialidad'] = '*'
-                        log_writer.writerow({**params, **data})
+                            log_writer.writerow({'c': c, **data})
+                            log_file.flush()
+                            del data['especialidad']
+                        log_writer.writerow({'c': c, **data})
                         log_file.flush()
-                    data['categoria'] = '*'
-                    log_writer.writerow({**params, **data})
+                        del data['categoria']
+                    log_writer.writerow({'c': c, **data})
                     log_file.flush()
-                data['zona'] = '*'
-                log_writer.writerow({**params, **data})
+                    del data['zona']
+                log_writer.writerow({'c': c, **data})
                 log_file.flush()
-            data['cartilla'] = '*'
-            log_writer.writerow({**params, **data})
+                del data['cartilla']
+            log_writer.writerow({'c': c, **data})
             log_file.flush()
-        data['plan'] = '*'
-        log_writer.writerow({**params, **data})
+            del data['plan']
+        log_writer.writerow({'c': c, **data})
         log_file.flush()
 os.remove('log.csv')

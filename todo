@@ -1,10 +1,6 @@
 TODO:
 - si encuentra error de conexión, reintentar indefinidamente, con intervalos de espera cada vez más largos
-- cada vez que escribe al csv, registrar en archivo temporal las combinaciones de valores exploradas. Al principio del script verificar la presencia de este archivo temporal y cargarlo si existe. Al ingresar a cada iteración de cada loop, verificar si la combinación ya fue explorada, y skippear en caso afirmativo. Si script termina de ejecutarse correctamente, eliminar el archivo temporal
-- indicar fecha de acceso en cada row
-- obtener el código de prestador e incluirlo en cada row
 - transformar el csv al formato wide; al hacerlo, concatenar cartilla > categoría > especialidad
-- obtener coordenadas
 - geojson con 2 propiedades: plan y especialidad, cada una es una lista de planes y especialidades para el prestador
 - agregar fecha de última obtención al csv (o geojson) y mostrar en mapa
 - https://leafletjs.com/examples/geojson/
