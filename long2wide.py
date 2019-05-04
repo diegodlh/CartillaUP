@@ -1,6 +1,10 @@
 import pandas as pd
 
-df = pd.read_csv('out.csv', keep_default_na=False)
+df = pd.read_csv(
+  'out.csv',
+  keep_default_na=False,
+  parse_dates=['accedido']
+)
 df.especialidad = df[['cartilla', 'categoria', 'especialidad']].apply(' > '.join, axis=1)
 
 
@@ -41,7 +45,11 @@ df.telefono = df.telefono.str.replace('^Tel: ', '')
 # # algunas diferencias son errores de tipeo, pero no se puede descartar que haya distintas observaciones
 # # para distintas especialidades o planes atendidos por un mismo prestador
 
-prestadores = df.groupby(['nombre', 'direccion', 'localidad', 'telefono', 'observaciones', 'coordenadas', 'plan']
+# antes de agrupar, sobreescribir fecha de acceso con la más vieja disponible para cada prestador
+df.accedido = df.groupby(['nombre', 'direccion', 'localidad', 'telefono', 'observaciones', 'coordenadas']
+  ).accedido.transform(min)
+
+prestadores = df.groupby(['nombre', 'direccion', 'localidad', 'telefono', 'observaciones', 'coordenadas', 'plan', 'accedido']
   ).agg({'especialidad': set})
 prestadores = prestadores.unstack(level='plan')
 prestadores.columns = prestadores.columns.droplevel()
