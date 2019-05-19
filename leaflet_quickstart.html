@@ -10,6 +10,9 @@
 <body>
 
 	<div id="mapid" style="height: 360px;"></div>
+	<select id="plan-select"></select>
+	<select id="esp-select"></select>
+
 	<script>
 		var mymap = L.map('mapid').setView([-34.61315,-58.37723], 10);
 		// L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> (<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>)'}).addTo(mymap);
@@ -60,11 +63,14 @@
 		// 	onEachFeature: onEachFeature
 		// }).addTo(mymap);
 
+		var prestadores
+
 		const xhr = new XMLHttpRequest();
-		xhr.open('GET', 'geojson.json');
+		xhr.open('GET', 'prestadores.geojson');
 		xhr.setRequestHeader('Content-Type', 'application/json');
 		xhr.responseType = 'json';
 		xhr.onload = function() {
+			prestadores = xhr.response
     		L.geoJSON(xhr.response, {
     			filter: function(feature, layer) {
     				return feature.properties.localidad == 'AVELLANEDA'
@@ -73,6 +79,38 @@
     		}).addTo(mymap);
 		};
 		xhr.send();
+
+		const xhr_planes = new XMLHttpRequest();
+		xhr_planes.open('GET', 'planes.json');
+		xhr_planes.setRequestHeader('Content-Type', 'application/json')
+		xhr_planes.responseType = 'json';
+		xhr_planes.onload = function() {
+			planes = xhr_planes.response.sort();
+			var plan_select = document.getElementById('plan-select');
+			planes.forEach(function(plan, index) {
+				var opt = document.createElement('option');
+				opt.value = index;
+				opt.innerHTML = plan;
+				plan_select.appendChild(opt);
+			});
+		};
+		xhr_planes.send()
+
+		const xhr_esp = new XMLHttpRequest();
+		xhr_esp.open('GET', 'especialidades.json');
+		xhr_esp.setRequestHeader('Content-Type', 'application/json')
+		xhr_esp.responseType = 'json';
+		xhr_esp.onload = function() {
+			especialidades = xhr_esp.response.sort();
+			var esp_select = document.getElementById('esp-select');
+			especialidades.forEach(function(especialidad, index) {
+				var opt = document.createElement('option');
+				opt.value = index;
+				opt.innerHTML = especialidad;
+				esp_select.appendChild(opt);
+			});
+		};
+		xhr_esp.send()
 
 	</script>
 
