@@ -2,27 +2,33 @@
 <html>
 <head>
 	
+	<link rel="stylesheet" href="styles.css">
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA==" crossorigin=""/>
-
 	<script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js" integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg==" crossorigin=""></script>
 
 </head>
 <body>
 
-	<div id="mapid" style="height: 360px;"></div>
-	<select id="plan-select"></select>
-	<select id="esp-select"></select>
+	<div id="map"></div>
+	<div style="position: absolute; bottom: 1%; left: 1%; z-index: 999;">
+		<select id="plan-select">
+			<option hidden selected value>--Elija un plan--</option>
+		</select><br>
+		<select id="esp-select">
+			<option hidden selected value>--Elija una especialidad--</option>
+		</select>
+	</div>
 
 	<script>
-		var mymap = L.map('mapid').setView([-34.61315,-58.37723], 10);
-		// L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> (<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>)'}).addTo(mymap);
+		var map = L.map('map').setView([-34.61315,-58.37723], 10);
+		// L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> (<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>)'}).addTo(map);
 		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
 			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
 		    id: 'mapbox.streets',
     		accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw'
-		}).addTo(mymap);
+		}).addTo(map);
 
-		// var marker = L.marker([51.5, -0.09]).addTo(mymap);
+		// var marker = L.marker([51.5, -0.09]).addTo(map);
 		// marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();
 		// var popup = L.popup()
 
@@ -30,9 +36,9 @@
 		// 	popup
 		// 		.setLatLng(e.latlng)
   //       		.setContent("You clicked the map at " + e.latlng.toString())
-  //       		.openOn(mymap);
+  //       		.openOn(map);
 		// }
-		// mymap.on('click', onMapClick);
+		// map.on('click', onMapClick);
 
 		// var marker_a = L.marker([51.513443, -0.117588]);
 		// var marker_b = L.marker([51.509704, -0.071239]);
@@ -41,10 +47,27 @@
 		// var overlayMaps = {
   // 			"Grouped markers": layer_group
 		// };
-		// L.control.layers(null, overlayMaps).addTo(mymap);
+		// L.control.layers(null, overlayMaps).addTo(map);
 
 		function onEachFeature(feature, layer) {
-			layer.bindPopup(feature.properties.nombre);
+			let nombre = feature.properties.nombre;
+			let direccion = feature.properties.direccion;
+			let localidad = feature.properties.localidad;
+			let telefono = feature.properties.telefono;
+			let observaciones = feature.properties.observaciones;
+			let accedido = feature.properties.accedido;
+			accedido = new Date(accedido);
+			let date = accedido.getUTCDate();
+			let month = accedido.getUTCMonth();
+			let year = accedido.getUTCFullYear();
+			popupContent = `
+				<strong>Nombre: </strong>${nombre}<br>
+				<strong>Dirección: </strong>${direccion}, ${localidad}<br>
+				<strong>Teléfono: </strong>${telefono}<br>
+				<strong>Observaciones: </strong>${observaciones}<br><br>
+				Última actualización: ${date}-${month}-${year}
+			`;
+			layer.bindPopup(popupContent);
 		}
 
 		// var geojsonFeature = {
@@ -61,9 +84,11 @@
 		// };
 		// L.geoJSON(geojsonFeature, {
 		// 	onEachFeature: onEachFeature
-		// }).addTo(mymap);
+		// }).addTo(map);
 
 		var prestadores
+		var plan_select = document.getElementById('plan-select');
+		var esp_select = document.getElementById('esp-select');
 
 		const xhr = new XMLHttpRequest();
 		xhr.open('GET', 'prestadores.geojson');
@@ -71,12 +96,6 @@
 		xhr.responseType = 'json';
 		xhr.onload = function() {
 			prestadores = xhr.response
-    		L.geoJSON(xhr.response, {
-    			filter: function(feature, layer) {
-    				return feature.properties.localidad == 'AVELLANEDA'
-    			},
-    			onEachFeature: onEachFeature
-    		}).addTo(mymap);
 		};
 		xhr.send();
 
@@ -86,10 +105,9 @@
 		xhr_planes.responseType = 'json';
 		xhr_planes.onload = function() {
 			planes = xhr_planes.response.sort();
-			var plan_select = document.getElementById('plan-select');
 			planes.forEach(function(plan, index) {
 				var opt = document.createElement('option');
-				opt.value = index;
+				// opt.value = index;
 				opt.innerHTML = plan;
 				plan_select.appendChild(opt);
 			});
@@ -102,15 +120,40 @@
 		xhr_esp.responseType = 'json';
 		xhr_esp.onload = function() {
 			especialidades = xhr_esp.response.sort();
-			var esp_select = document.getElementById('esp-select');
 			especialidades.forEach(function(especialidad, index) {
 				var opt = document.createElement('option');
-				opt.value = index;
+				// opt.value = index;
 				opt.innerHTML = especialidad;
 				esp_select.appendChild(opt);
 			});
 		};
 		xhr_esp.send()
+
+		var layer
+
+		function refresh() {
+			plan = plan_select.value
+			especialidad = esp_select.value
+
+			if(plan != '' && especialidad != '') {
+				if(map.hasLayer(layer)) {
+					map.removeLayer(layer)
+				}
+				
+				layer = L.geoJSON(prestadores, {
+					filter: function(feature, layer) {
+						esp_bool = feature.properties.especialidades[plan].includes(especialidad)
+						loc_bool = feature.properties.localidad == 'CIUDAD AUTONOMA DE BUENOS AIRES'
+						return esp_bool & loc_bool
+					},
+					onEachFeature: onEachFeature
+				})
+				layer.addTo(map);
+			}
+		}
+
+		plan_select.onchange = refresh;
+		esp_select.onchange = refresh;
 
 	</script>
 
