@@ -15,3 +15,29 @@ L.geoJSON(someFeatures, {
 
 geoJSON extends FeatureGroup, which extends LayerGroup, which "if you add it to the map, any layers added or removed from the group will be added/removed on the map as well"
 geoJSON objects inherit remove() method from Layer
+
+- mi preocupación concierne respecto de usar archivo csv para los prestadores, o json. Json es nativo para Javascript, pero a mí me da la sensación de que es muy redundante (con las keys repitiéndose para cada objeto: https://stackoverflow.com/questions/41521211/is-json-too-redundant-like-xml). Sin embargo, es posible que este punto quede resuelto cuando el archivo se gzipea? Lo mismo pasa con mi decisión de codificar las prestaciones y localidades con números para reducir el tamaño del archivo csv: hace falta? Veamos...
+
+Las versiones no categóricas son más grandes que las categóricas (los archivos que describen las cateǵorías: localidades.csv y especialidades.csv, suman muy poco tamaño). Pero el ratio nocat/cat es mucho menor comprimido que no comprimido.
+Las versiones json son más grandes que las csv, pero nuevamente el ratio json/csv es mucho menor comprimido que no comprimido.
+categorica.csv.gz = 1.1MB
+categorica.json.gz = 1.4MB
+no_categorica.csv.gz = 1.5MB
+no_categorica.json.gz = 1.8MB
+categorica.csv = 4MB
+categorica.json = 10.6MB
+no_categorica.csv = 13.4MB
+no_categorica.json = 20.9MB
+
+nocat/cat:
+nocat.csv/cat.csv = 3.35
+nocat.json/cat.json = 1.97
+nocat.csv.gz/cat.csv.gz = 1.36
+nocat.json.gz/cat.json.gz = 1.29
+
+json/csv:
+nocat.json/nocat.csv = 1.56
+cat.json/cat.csv = 2.65
+nocat.json.gz/nocat.csv.gz = 1.2
+cat.json.gz/cat.csv.gz = 1.27
+
