@@ -52,32 +52,28 @@
 		).setView([-38.4192641, -63.5989206], 4);
 		map.locate({setView: true, maxZoom: 12});
 		// L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> (<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>)'}).addTo(map);
-		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
-		    id: 'mapbox.streets',
-    		accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw'
-		}).addTo(map);
+		// L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+		// 	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
+		//     id: 'mapbox.streets',
+  //   		accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw'
+		// }).addTo(map);
 
-		// var marker = L.marker([51.5, -0.09]).addTo(map);
-		// marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();
-		// var popup = L.popup()
+		// Mapa base actual de ArgenMap (Geoserver)
+		var argenmap = L.tileLayer('http://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{y}.png', {
+			tms: true,
+			maxZoom: 15,
+			attribution: 'Mapa del <a href="http://www.ign.gob.ar">Instituto Geográfico Nacional</a>, ' +
+				'capa de calles por colaboradores de &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>'
+		});
 
-		// function onMapClick(e) {
-		// 	popup
-		// 		.setLatLng(e.latlng)
-  //       		.setContent("You clicked the map at " + e.latlng.toString())
-  //       		.openOn(map);
-		// }
-		// map.on('click', onMapClick);
+		// Mapa IGN nuevo (Arcgis Server)
+		var arcgis = L.tileLayer('https://ide.ign.gob.ar/geoservicios/rest/services/Mapas_IGN/mapa_topografico/MapServer/tile/{z}/{y}/{x}', {
+		    maxZoom: 16,
+		    attribution: 'Mapa del <a href="http://www.ign.gob.ar">Instituto Geográfico Nacional</a>, ' +
+				'capa de calles por colaboradores de &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>'
+		});
 
-		// var marker_a = L.marker([51.513443, -0.117588]);
-		// var marker_b = L.marker([51.509704, -0.071239]);
-		// var layer_group = L.layerGroup([marker_a, marker_b]);
-
-		// var overlayMaps = {
-  // 			"Grouped markers": layer_group
-		// };
-		// L.control.layers(null, overlayMaps).addTo(map);
+		arcgis.addTo(map)
 
 		function onEachFeature(feature, layer) {
 			let nombre = feature.properties.nombre;
