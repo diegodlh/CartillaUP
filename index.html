@@ -28,7 +28,8 @@
 		var map = L.map(
 			'map',
 			// {preferCanvas: true}
-		).setView([-34.61315,-58.37723], 10);
+		).setView([-38.4192641, -63.5989206], 4);
+		map.locate({setView: true, maxZoom: 12});
 		// L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> (<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>)'}).addTo(map);
 		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
 			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
