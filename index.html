@@ -75,7 +75,7 @@
 		    attribution: 'Mapa del <a href="http://www.ign.gob.ar">IGN</a> | &copy; <a href="https://www.openstreetmap.org/">OSM</a>'
 		});
 
-		mapbox.addTo(map)
+		osm.addTo(map)
 
 		function onEachFeature(feature, layer) {
 			let nombre = feature.properties.nombre;
